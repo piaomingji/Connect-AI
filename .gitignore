@@ -1,8 +1,15 @@
-# Connect AI auto-generated
+# Connect AI
+node_modules/
+out/
+*.vsix
+.vscode-test/
+preview.html
 .DS_Store
+releases/
+.env
+*.bak.*
 .obsidian/
 .trash/
-node_modules/
 *.tmp
 *.log
 .cache/
