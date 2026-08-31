@@ -2459,7 +2459,7 @@ function _refreshDockChip(){
   }
   if (usedSet.size === 1) {
     const m = Array.from(usedSet)[0] || '미설정';
-    const short = m.replace(/^google\//,'').replace(/^qwen\//,'').replace(/^nvidia\//,'');
+    const short = m.replace(/^(google|qwen|nvidia|mlx-community|lmstudio-community)\//i,'');
     mdl.textContent = short;
     mdl.classList.remove('mixed');
     chip.dataset.mixed = 'false';
@@ -2504,7 +2504,7 @@ function renderAgentDock(data){
     } else {
       card.title = a.name + ' (' + (a.role||'') + ') · 클릭해서 모델 변경';
     }
-    const shortModel = (a.currentModel || _adDefault || '미설정').replace(/^google\//,'').replace(/^qwen\//,'').replace(/^nvidia\//,'');
+    const shortModel = (a.currentModel || _adDefault || '미설정').replace(/^(google|qwen|nvidia|mlx-community|lmstudio-community)\//i,'');
     card.innerHTML = ''
       + '<div class="ag-emoji">' + (a.emoji || '🤖') + '</div>'
       + '<div class="ag-text">'
@@ -2544,7 +2544,7 @@ function openDockPopover(card, agentData, opts){
     +   '<div class="ph-text"><div class="ph-name">' + escAd(headName) + '</div><div class="ph-role">' + escAd(headRole) + '</div></div>'
     +   '<button class="ph-close" id="phClose" type="button" title="닫기">×</button>'
     + '</div>'
-    + '<input class="ad-popover-search" id="phSearch" type="text" placeholder="모델 검색 (예: gemma, qwen, 7b…)" />'
+    + '<input class="ad-popover-search" id="phSearch" type="text" placeholder="모델 검색 (예: gemma4, qwen3.5, 9b…)" />'
     + '<div class="ad-popover-list" id="phList"></div>'
     + (isAllMode ? '' : '<div class="ad-popover-foot"><span>현재: ' + escAd(agentData.currentModel || _adDefault || '미설정') + '</span><button class="pf-clear" id="phClear" type="button" title="이 specialist의 매핑을 지워서 default 모델 사용">매핑 지우기</button></div>');
   dock.appendChild(pop);

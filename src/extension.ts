@@ -1366,18 +1366,18 @@ type ModelTier = 'tiny' | 'small' | 'medium' | 'large' | 'vision' | 'coder';
 function _classifyModel(modelId: string): ModelTier[] {
   const id = modelId.toLowerCase();
   const tiers: ModelTier[] = [];
-  /* 비전 모델 — 이미지 입력 가능 */
-  if (/vision|llava|vl\b|glm.*v|gemma.?4.*e|qwen.?2.?vl|moondream/i.test(id)) tiers.push('vision');
+  /* 비전 모델 — 이미지 입력 가능 (Gemma 4, Qwen 3.5/2-VL, LLaVA 등) */
+  if (/vision|llava|vl\b|glm.*v|gemma.?4|qwen.?(?:2.?vl|3(?:\.5)?)|moondream/i.test(id)) tiers.push('vision');
   /* 코드 특화 */
-  if (/coder|code-?(?:llama|qwen)/i.test(id)) tiers.push('coder');
-  /* 사이즈 — 우선순위: 명시된 파라미터 → 모델 이름 패턴 */
-  const paramM = id.match(/(\d+(?:\.\d+)?)\s*b\b/);
+  if (/coder|code-?(?:llama|qwen)|qwen.?(?:2\.?5|3\.?5)/i.test(id)) tiers.push('coder');
+  /* 사이즈 — 우선순위: 명시된 파라미터(e.g., e4b, e2b, 9b, 7b) → 모델 이름 패턴 */
+  const paramM = id.match(/(?:e|a)?(\d+(?:\.\d+)?)\s*b\b/);
   let paramB = paramM ? parseFloat(paramM[1]) : 0;
   /* MoE 모델은 활성 파라미터 기준으로 분류 (예: "24b a2b" = 활성 2B) */
   const moeM = id.match(/a(\d+(?:\.\d+)?)b/);
   if (moeM) paramB = parseFloat(moeM[1]);
-  /* LFM 패밀리 + Phi + Gemma E2B 같이 작은 모델 패턴 */
-  const isExplicitlyTiny = /lfm2\.?5|gemma.?4.?e2b|phi-?3|llama.?3\.?2.?(?:1b|3b)|qwen.?2\.?5.?(?:0\.5b|1\.5b|3b)/i.test(id);
+  /* LFM 패밀리 + Phi + Gemma E2B / Qwen 0.5B-3B 같이 작은 모델 패턴 */
+  const isExplicitlyTiny = /lfm2\.?5|gemma.?4.?e2b|phi-?3|llama.?3\.?2.?(?:1b|3b)|qwen.?(?:2\.?5|3\.?5).?(?:0\.5b|1\.5b|2b|3b)/i.test(id);
   if (isExplicitlyTiny || (paramB > 0 && paramB <= 3)) tiers.push('tiny');
   else if (paramB <= 8) tiers.push('small');
   else if (paramB <= 14) tiers.push('medium');

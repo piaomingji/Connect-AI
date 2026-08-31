@@ -685,7 +685,7 @@ function showTrendingModelsModal(models, error){
     if(error) return '<div class="tmd-error">조회 실패: ' + esc(error) + '</div>';
     if(!models || models.length === 0) return '<div class="tmd-empty">결과 없음</div>';
     return models.map((m, i) => {
-      const tagBadges = (m.tags || []).filter(t => /text-generation|llama|qwen|mistral|gemma|phi|coder|instruct|chat|gguf/i.test(t)).slice(0, 4)
+      const tagBadges = (m.tags || []).filter(t => /text-generation|llama|qwen|mistral|gemma|phi|coder|instruct|chat|gguf|mlx/i.test(t)).slice(0, 4)
         .map(t => '<span class="tmd-tag">' + esc(t) + '</span>').join('');
       const lastMod = m.lastModified ? new Date(m.lastModified).toISOString().slice(0, 10) : '';
       return '<div class="tmd-row">'

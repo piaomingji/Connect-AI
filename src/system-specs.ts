@@ -59,10 +59,10 @@ export function getSystemSpecs(): SystemSpecs {
    - 사이즈 못 읽으면 기본 7B 가정. */
 export function estimateModelMemoryGB(modelId: string): number {
   const id = modelId.toLowerCase();
-  const paramM = id.match(/(\d+(?:\.\d+)?)\s*b\b/);
+  const paramM = id.match(/(?:e|a)?(\d+(?:\.\d+)?)\s*b\b/);
   const totalB = paramM ? parseFloat(paramM[1]) : 7; /* 미확인 시 7B 기본값 */
-  /* 양자화 단서: q4·q5·q6·q8 / 4bit / awq / gguf */
-  let bytesPerParam = 0.6; /* 4-bit 기본 */
+  /* 양자화 단서: q4·q5·q6·q8 / 4bit / awq / gguf / mlx */
+  let bytesPerParam = 0.6; /* 4-bit / MLX 기본 */
   if (/q8|8bit|fp8/i.test(id)) bytesPerParam = 1.0;
   if (/q5|5bit/i.test(id)) bytesPerParam = 0.7;
   if (/q6|6bit/i.test(id)) bytesPerParam = 0.8;
