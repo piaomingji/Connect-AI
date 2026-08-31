@@ -16156,7 +16156,30 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
     public triggerAgentDockReload() {
         if (this._view) {
             this._view.webview.postMessage({ type: 'agentMapExternallyChanged' });
+            this._refreshModelsList().catch(() => {});
         }
+    }
+
+    public async _sendModels() {
+        if (!this._view) return;
+        try {
+            const installed = await listInstalledModels();
+            const defaultModel = this.getDefaultModel();
+            let models = installed.map(m => m.id);
+            if (models.length === 0) {
+                models = defaultModel ? [defaultModel] : ['gemma4:e2b'];
+            } else if (defaultModel && !models.includes(defaultModel)) {
+                models.unshift(defaultModel);
+            }
+            this._view.webview.postMessage({ type: 'modelsList', value: models });
+        } catch {
+            const def = this.getDefaultModel() || 'gemma4:e2b';
+            this._view.webview.postMessage({ type: 'modelsList', value: [def] });
+        }
+    }
+
+    public async _refreshModelsList() {
+        return this._sendModels();
     }
 
     /** 스킬팩 주입 — broadcastInjectCard의 스킬 버전.
@@ -16889,7 +16912,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
                         const specs = getSystemSpecs();
                         const installedWithMem = installed.map(m => ({
                             id: m.id,
-                            tier: (m as any).tier || '',
+                            tier: _classifyModel(m.id).join(' · '),
                             estMemGB: estimateModelMemoryGB(m.id),
                             safe: estimateModelMemoryGB(m.id) <= specs.safeModelBudgetGB,
                         }));
@@ -17996,47 +18019,7 @@ class SidebarChatProvider implements vscode.WebviewViewProvider {
         }, 3000);
     }
 
-    // --------------------------------------------------------
-    // Fetch installed Ollama models
-    // --------------------------------------------------------
-    private async _sendModels() {
-        if (!this._view) { return; }
-        const { ollamaBase, defaultModel } = getConfig();
-        try {
-            const isLMStudio = _isLMStudioEngine(ollamaBase);
-            let models: string[] = [];
 
-            if (isLMStudio) {
-                // LM Studio 0.3+ 의 native API는 state 필드를 줘서 로드된 모델만 골라낼 수 있음
-                try {
-                    const nativeRes = await axios.get(`${ollamaBase}/api/v0/models`, { timeout: 3000 });
-                    const items: any[] = nativeRes.data?.data || [];
-                    if (items.length > 0) {
-                        models = items
-                            .filter((m: any) => m.state === 'loaded' && (!m.type || m.type === 'llm' || m.type === 'vlm'))
-                            .map((m: any) => m.id);
-                    }
-                } catch { /* 구버전 LM Studio는 native API 없음 → /v1/models 폴백 */ }
-
-                if (models.length === 0) {
-                    const res = await axios.get(`${ollamaBase}/v1/models`, { timeout: 3000 });
-                    models = (res.data?.data || []).map((m: any) => m.id);
-                }
-            } else {
-                const res = await axios.get(`${ollamaBase}/api/tags`, { timeout: 3000 });
-                models = (res.data?.models || []).map((m: any) => m.name);
-            }
-
-            if (models.length === 0) {
-                models = [defaultModel];
-            } else if (!models.includes(defaultModel)) {
-                models.unshift(defaultModel);
-            }
-            this._view.webview.postMessage({ type: 'modelsList', value: models });
-        } catch {
-            this._view.webview.postMessage({ type: 'modelsList', value: [defaultModel] });
-        }
-    }
 
     // --------------------------------------------------------
     // Second Brain Menu (QuickPick)
